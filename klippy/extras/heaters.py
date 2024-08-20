@@ -5,6 +5,7 @@
 # This file may be distributed under the terms of the GNU GPLv3 license.
 import os, logging, threading
 
+heat_break = 0 # FLSUN Changes
 
 ######################################################################
 # Heater
@@ -146,8 +147,21 @@ class Heater:
     cmd_SET_HEATER_TEMPERATURE_help = "Sets a heater temperature"
     def cmd_SET_HEATER_TEMPERATURE(self, gcmd):
         temp = gcmd.get_float('TARGET', 0.)
+        # Start FLSUN Changes
+        wait = gcmd.get_float('WAIT', 0)
+        if ("extruder" in self.short_name):
+            gcode = self.printer.lookup_object('gcode')
+            if(temp > 0.5):
+                gcode.run_script_from_command("_RELAY_ON")
+        # End FLSUN Changes
         pheaters = self.printer.lookup_object('heaters')
-        pheaters.set_temperature(self, temp)
+        # Start FLSUN Changes
+        #pheaters.set_temperature(self, temp)
+        if (wait==1):
+            pheaters.set_temperature(self, temp, True)
+        else:
+            pheaters.set_temperature(self, temp, False)
+        # End FLSUN Changes
 
 
 ######################################################################
@@ -177,7 +191,10 @@ class ControlBangBang:
 # Proportional Integral Derivative (PID) control algo
 ######################################################################
 
-PID_SETTLE_DELTA = 1.
+# Start FLSUN Changes
+#PID_SETTLE_DELTA = 1.
+PID_SETTLE_DELTA = 3.
+# End FLSUN Changes
 PID_SETTLE_SLOPE = .1
 
 class ControlPID:
@@ -222,8 +239,11 @@ class ControlPID:
             self.prev_temp_integ = temp_integ
     def check_busy(self, eventtime, smoothed_temp, target_temp):
         temp_diff = target_temp - smoothed_temp
-        return (abs(temp_diff) > PID_SETTLE_DELTA
-                or abs(self.prev_temp_deriv) > PID_SETTLE_SLOPE)
+        # Start FLSUN Changes
+        #return (abs(temp_diff) > PID_SETTLE_DELTA
+        #        or abs(self.prev_temp_deriv) > PID_SETTLE_SLOPE)
+        return (abs(temp_diff) > PID_SETTLE_DELTA)
+        # End FLSUN Changes
 
 
 ######################################################################
@@ -332,6 +352,12 @@ class PrinterHeaters:
         did_ack = gcmd.ack(msg)
         if not did_ack:
             gcmd.respond_raw(msg)
+        # Start FLSUN Changes
+        heat_break_flag = gcmd.get_float('S', None, above=0.)
+        if heat_break_flag is not None:
+            global heat_break
+            heat_break = 0
+        # End FLSUN Changes
     def _wait_for_temperature(self, heater):
         # Helper to wait on heater.check_busy() and report M105 temperatures
         if self.printer.get_start_args().get('debugoutput') is not None:
@@ -340,7 +366,10 @@ class PrinterHeaters:
         gcode = self.printer.lookup_object("gcode")
         reactor = self.printer.get_reactor()
         eventtime = reactor.monotonic()
-        while not self.printer.is_shutdown() and heater.check_busy(eventtime):
+        # Start FLSUN Changes
+        #while not self.printer.is_shutdown() and heater.check_busy(eventtime):
+        while not self.printer.is_shutdown() and heater.check_busy(eventtime) and (not heat_break):
+        # End FLSUN Changes
             print_time = toolhead.get_last_move_time()
             gcode.respond_raw(self._get_temp(eventtime))
             eventtime = reactor.pause(eventtime + 1.)

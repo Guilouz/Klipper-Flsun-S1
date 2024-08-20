@@ -9,3 +9,5 @@ greenlet==3.0.3 ; python_version >= '3.12'
 Jinja2==2.11.3
 python-can==3.3.4
 markupsafe==1.1.1
+numpy==1.16.2  ; python_version < '3.9'
+numpy ; python_version >= '3.9'

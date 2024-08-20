@@ -75,6 +75,18 @@ pa_move_integrate(struct move *m, struct list_head *pa_list
             pa = list_prev_entry(pa, node);
         }
         pressure_advance = pa->pressure_advance;
+        // Start FLSUN Changes
+        if (pressure_advance > 0 && pressure_advance <= 0.002)
+        {
+            pressure_advance = 0.02 - m->move_t * 0.04;
+            if (pressure_advance <= 0.005)
+                pressure_advance = 0.005;
+            if (pressure_advance >= 0.026)
+                pressure_advance = 0.015;
+            if (pressure_advance >= 0.035)
+                pressure_advance = 0.035;
+        }
+        // End FLSUN Changes
     }
     // Calculate base position and velocity with pressure advance
     base += pressure_advance * m->start_v;

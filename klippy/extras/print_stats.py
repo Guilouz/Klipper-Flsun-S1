@@ -10,6 +10,7 @@ class PrintStats:
         self.gcode_move = printer.load_object(config, 'gcode_move')
         self.reactor = printer.get_reactor()
         self.reset()
+        self.duration = 0 # FLSUN Changes
         # Register commands
         self.gcode = printer.lookup_object('gcode')
         self.gcode.register_command(
@@ -100,7 +101,13 @@ class PrintStats:
             else:
                 # Accumulate filament if not paused
                 self._update_filament_usage(eventtime)
-            self.total_duration = eventtime - self.print_start_time
+            # Start FLSUN Changes
+            #self.total_duration = eventtime - self.print_start_time
+            if(self.duration == 0):
+                self.total_duration = eventtime - self.print_start_time
+            else:
+                self.total_duration = eventtime - self.print_start_time + self.duration
+            # End FLSUN Changes
             if self.filament_used < 0.0000001:
                 # Track duration prior to extrusion
                 self.init_duration = self.total_duration - time_paused
@@ -115,6 +122,10 @@ class PrintStats:
             'info': {'total_layer': self.info_total_layer,
                      'current_layer': self.info_current_layer}
         }
+    # Start FLSUN Changes
+    def modify_print_time(self, time):
+        self.duration = time
+    # End FLSUN Changes
 
 def load_config(config):
     return PrintStats(config)

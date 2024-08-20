@@ -5,6 +5,7 @@
 # This file may be distributed under the terms of the GNU GPLv3 license
 import logging, socket, os, sys, errno, json, collections
 import gcode
+import extras.heaters as heater # FLSUN Changes
 
 REQUEST_LOG_SIZE = 20
 
@@ -225,6 +226,12 @@ class ClientConnection:
     def process_received(self, eventtime):
         try:
             data = self.sock.recv(4096)
+            # Start FLSUN Changes
+            if "pause_resume/cancel" in str(data):
+                heater.heat_break = 1
+            if "SDCARD_PRINT_FILE FILENAME=" in str(data):
+                heater.heat_break = 0
+            # End FLSUN Changes
         except socket.error as e:
             # If bad file descriptor allow connection to be
             # closed by the data check
