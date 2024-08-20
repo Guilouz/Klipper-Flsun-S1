@@ -13,6 +13,7 @@ class DeltaKinematics:
     def __init__(self, toolhead, config):
         # Setup tower rails
         stepper_configs = [config.getsection('stepper_' + a) for a in 'abc']
+        self.printer = config.get_printer() #FLSUN Changes
         rail_a = stepper.LookupMultiRail(
             stepper_configs[0], need_position_minmax = False)
         a_endstop = rail_a.get_homing_info().position_endstop
@@ -35,6 +36,12 @@ class DeltaKinematics:
         # Read radius and arm lengths
         self.radius = radius = config.getfloat('delta_radius', above=0.)
         print_radius = config.getfloat('print_radius', radius, above=0.)
+        # Start FLSUN Changes
+        gcode_move = self.printer.lookup_object('gcode_move')
+        x_size_offset, y_size_offset = gcode_move.get_xy_size_offset()
+        if x_size_offset > 0 or y_size_offset > 0:
+            print_radius = print_radius*(1 + max(x_size_offset, y_size_offset))
+        # End FLSUN Changes
         arm_length_a = stepper_configs[0].getfloat('arm_length', above=radius)
         self.arm_lengths = arm_lengths = [
             sconfig.getfloat('arm_length', arm_length_a, above=radius)

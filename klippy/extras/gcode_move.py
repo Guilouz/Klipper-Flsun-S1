@@ -8,6 +8,11 @@ import logging
 class GCodeMove:
     def __init__(self, config):
         self.printer = printer = config.get_printer()
+        # Start FLSUN Changes
+        p_config = config.getsection('printer')
+        self.x_size_offset = p_config.getfloat('x_size_offset', 0, above=-0.035, below=0.035) 
+        self.y_size_offset = p_config.getfloat('y_size_offset', 0, above=-0.035, below=0.035) 
+        # End FLSUN Changes
         printer.register_event_handler("klippy:ready", self._handle_ready)
         printer.register_event_handler("klippy:shutdown", self._handle_shutdown)
         printer.register_event_handler("toolhead:set_position",
@@ -45,6 +50,7 @@ class GCodeMove:
         self.speed = 25.
         self.speed_factor = 1. / 60.
         self.extrude_factor = 1.
+        self.max_z = 430 # FLSUN Changes
         # G-Code state
         self.saved_states = {}
         self.move_transform = self.move_with_transform = None
@@ -73,6 +79,7 @@ class GCodeMove:
         self.base_position[3] = self.last_position[3]
     def _handle_home_rails_end(self, homing_state, rails):
         self.reset_last_position()
+        self.max_z = self.last_position[2] # FLSUN Changes
         for axis in homing_state.get_axes():
             self.base_position[axis] = self.homing_position[axis]
     def set_move_transform(self, transform, force=False):
@@ -109,6 +116,10 @@ class GCodeMove:
     def reset_last_position(self):
         if self.is_printer_ready:
             self.last_position = self.position_with_transform()
+    # Start FLSUN Changes
+    def get_xy_size_offset(self):
+        return self.x_size_offset, self.y_size_offset
+    # End FLSUN Changes
     # G-Code movement commands
     def cmd_G1(self, gcmd):
         # Move
@@ -131,6 +142,18 @@ class GCodeMove:
                 else:
                     # value relative to base coordinate position
                     self.last_position[3] = v + self.base_position[3]
+            # Start FLSUN Changes
+            self.cali_position = self.last_position[:]
+            real_x_size_offset = real_y_size_offset = 0
+            if self.last_position[2] > (self.max_z - 2.5):
+                real_x_size_offset = 0
+                real_y_size_offset = 0
+            else:
+                real_x_size_offset = self.x_size_offset
+                real_y_size_offset = self.y_size_offset
+            self.cali_position[0] = self.last_position[0] * (1 + real_x_size_offset) 
+            self.cali_position[1] = self.last_position[1] * (1 + real_y_size_offset) 
+            # End FLSUN Changes
             if 'F' in params:
                 gcode_speed = float(params['F'])
                 if gcode_speed <= 0.:
@@ -140,7 +163,10 @@ class GCodeMove:
         except ValueError as e:
             raise gcmd.error("Unable to parse move '%s'"
                              % (gcmd.get_commandline(),))
-        self.move_with_transform(self.last_position, self.speed)
+        # Start FLSUN Changes
+        #self.move_with_transform(self.last_position, self.speed)
+        self.move_with_transform(self.cali_position, self.speed)
+        # End FLSUN Changes
     # G-Code coordinate manipulation
     def cmd_G20(self, gcmd):
         # Set units to inches

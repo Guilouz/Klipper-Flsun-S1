@@ -52,7 +52,13 @@ class Temperature_HOST:
         except Exception:
             logging.exception("temperature_host: Error reading data")
             self.temp = 0.0
-            return self.reactor.NEVER
+            # Start FLSUN Changes
+            #return self.reactor.NEVER
+            if self.name == "_drying_box_temp":
+                return self.reactor.monotonic() + HOST_REPORT_TIME
+            else:
+                return self.reactor.NEVER
+            # End FLSUN Changes
 
         if self.temp < self.min_temp:
             self.printer.invoke_shutdown(
