@@ -131,18 +131,30 @@ class DeltaKinematics:
             raise move.move_error("Must home first")
         end_z = end_pos[2]
         limit_xy2 = self.max_xy2
-        if end_z > self.limit_z:
-            above_z_limit = end_z - self.limit_z
-            allowed_radius = self.radius - math.sqrt(
-                self.min_arm2 - (self.min_arm_length - above_z_limit)**2
-            )
-            limit_xy2 = min(limit_xy2, allowed_radius**2)
+        # Start FLSUN Changes
+        #if end_z > self.limit_z:
+        #    above_z_limit = end_z - self.limit_z
+        #    allowed_radius = self.radius - math.sqrt(
+        #        self.min_arm2 - (self.min_arm_length - above_z_limit)**2
+        #    )
+        #    limit_xy2 = min(limit_xy2, allowed_radius**2)
+        # End FLSUN Changes
         if end_xy2 > limit_xy2 or end_z > self.max_z or end_z < self.min_z:
             # Move out of range - verify not a homing move
             if (end_pos[:2] != self.home_position[:2]
                 or end_z < self.min_z or end_z > self.home_position[2]):
                 raise move.move_error()
             limit_xy2 = -1.
+        # Start FLSUN Changes
+        if end_z > self.limit_z:
+            ha = math.sqrt(self.arm2[0] - (end_pos[0] - self.towers[0][0])**2 - (end_pos[1] - self.towers[0][1])**2) + end_pos[2]
+            hb = math.sqrt(self.arm2[1] - (end_pos[0] - self.towers[1][0])**2 - (end_pos[1] - self.towers[1][1])**2) + end_pos[2]
+            hc = math.sqrt(self.arm2[2] - (end_pos[0] - self.towers[2][0])**2 - (end_pos[1] - self.towers[2][1])**2) + end_pos[2]    
+            logging.info("ha is %f, hb is %f, hc is %f ,abs_endstop is %s", ha, hb, hc, str(self.abs_endstops))
+            if ha > (self.abs_endstops[0] + 0.01) or hb > (self.abs_endstops[1] +0.01) or hc > (self.abs_endstops[2] +0.01):
+                raise move.move_error()
+            limit_xy2 = -1.
+        # End FLSUN Changes
         if move.axes_d[2]:
             z_ratio = move.move_d / abs(move.axes_d[2])
             move.limit_speed(self.max_z_velocity * z_ratio,
