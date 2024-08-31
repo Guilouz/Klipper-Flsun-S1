@@ -201,7 +201,7 @@ class VirtualSD:
             fname = os.path.join(self.sdcard_dirname, fname)
             # Start FLSUN Changes
             #f = io.open(fname, 'r', newline='')
-            f = io.open(fname, 'rb', newline='')
+            f = io.open(fname, 'rb')
             # End FLSUN Changes
             f.seek(0, os.SEEK_END)
             fsize = f.tell()
