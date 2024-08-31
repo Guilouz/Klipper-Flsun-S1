@@ -307,44 +307,20 @@ class ProbeSessionHelper:
                 'samples_tolerance': samples_tolerance,
                 'samples_tolerance_retries': samples_retries,
                 'samples_result': samples_result}
-    # Start FLSUN Changes
-    #def _probe(self, speed):
-    def _probe(self, speed, gcmd, samples_retries):
-    # End FLSUN Changes
+    def _probe(self, speed):
         toolhead = self.printer.lookup_object('toolhead')
         curtime = self.printer.get_reactor().monotonic()
         if 'z' not in toolhead.get_status(curtime)['homed_axes']:
             raise self.printer.command_error("Must home before probe")
         pos = toolhead.get_position()
         pos[2] = self.z_position
-        # Start FLSUN Changes
-        #try:
-        #    epos = self.mcu_probe.probing_move(pos, speed)
-        #except self.printer.command_error as e:
-        #    reason = str(e)
-        #    if "Timeout during endstop homing" in reason:
-        #        reason += HINT_TIMEOUT
-        #    raise self.printer.command_error(reason)
-        retries = 0
-        while True:
-            try:
-                epos = self.mcu_probe.probing_move(pos, speed)
-                break
-            except self.printer.command_error as e:
-                reason = str(e)
-                if "Probe triggered prior to movement" in reason:
-                    retries += 1
-                    if retries >= samples_retries:
-                        raise self.printer.command_error(reason)
-                    else:
-                        gcmd.respond_info(f"Probe trigger prior to movement. Retrying... ({retries}/{samples_retries})")
-                        toolhead.dwell(0.5)
-                        continue
-                else:
-                    if "Timeout during endstop homing" in reason:
-                        reason += HINT_TIMEOUT
-                    raise self.printer.command_error(reason)
-        # End FLSUN Changes
+        try:
+            epos = self.mcu_probe.probing_move(pos, speed)
+        except self.printer.command_error as e:
+            reason = str(e)
+            if "Timeout during endstop homing" in reason:
+                reason += HINT_TIMEOUT
+            raise self.printer.command_error(reason)
         # Allow axis_twist_compensation to update results
         self.printer.send_event("probe:update_results", epos)
         # Report results
@@ -363,10 +339,7 @@ class ProbeSessionHelper:
         sample_count = params['samples']
         while len(positions) < sample_count:
             # Probe position
-            # Start FLSUN Changes
-            #pos = self._probe(params['probe_speed'])
-            pos = self._probe(params['probe_speed'], gcmd, params['samples_retries'])
-            # End FLSUN Changes
+            pos = self._probe(params['probe_speed'])
             positions.append(pos)
             # Check samples tolerance
             z_positions = [p[2] for p in positions]
