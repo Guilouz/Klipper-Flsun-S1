@@ -365,7 +365,7 @@ class ProbeSessionHelper:
             # Probe position
             # Start FLSUN Changes
             #pos = self._probe(params['probe_speed'])
-            pos = self._probe(params['probe_speed'], gcmd, samples_retries)
+            pos = self._probe(params['probe_speed'], gcmd, params['samples_retries'])
             # End FLSUN Changes
             positions.append(pos)
             # Check samples tolerance
