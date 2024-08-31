@@ -183,9 +183,9 @@ class VirtualSD:
     def cmd_POWER_LOSS_RESTART_PRINT(self, gcmd):
         filename = gcmd.get("FILENAME")
         fileposition = gcmd.get("FILEPOSITION")
-        fname = filename[len(self.sdcard_dirname)+1:]
-        #print_duration = gcmd.get("PRINT_DURATION")
-        #self.print_stats.modify_print_time(float(print_duration))
+        fname = os.path.basename(filename)
+        print_duration = gcmd.get("PRINT_DURATION")
+        self.print_stats.modify_print_time(float(print_duration))
         self._load_file(gcmd, fname, fileposition, check_subdirs=True)      
         self.do_resume()
     #def _load_file(self, gcmd, filename, check_subdirs=False):
@@ -199,10 +199,7 @@ class VirtualSD:
             if fname not in flist:
                 fname = files_by_lower[fname.lower()]
             fname = os.path.join(self.sdcard_dirname, fname)
-            # Start FLSUN Changes
-            #f = io.open(fname, 'r', newline='')
-            f = io.open(fname, 'rb')
-            # End FLSUN Changes
+            f = io.open(fname, 'r', newline='')
             f.seek(0, os.SEEK_END)
             fsize = f.tell()
             f.seek(0)
@@ -262,10 +259,7 @@ class VirtualSD:
             return self.reactor.NEVER
         self.print_stats.note_start()
         gcode_mutex = self.gcode.get_mutex()
-        # Start FLSUN Changes
-        #partial_input = ""
-        partial_input = b""
-        # End FLSUN Changes
+        partial_input = ""
         lines = []
         error_message = None
         while not self.must_pause_work:
@@ -283,10 +277,7 @@ class VirtualSD:
                     logging.info("Finished SD card print")
                     self.gcode.respond_raw("Done printing file")
                     break
-                # Start FLSUN Changes
-                #lines = data.split('\n')
-                lines = data.split(b'\n')
-                # End FLSUN Changes
+                lines = data.split('\n')
                 lines[0] = partial_input + lines[0]
                 partial_input = lines.pop()
                 lines.reverse()
@@ -305,10 +296,7 @@ class VirtualSD:
                 next_file_position = self.file_position + len(line) + 1
             self.next_file_position = next_file_position
             try:
-                # Start FLSUN Changes
-                #self.gcode.run_script(line)
-                self.gcode.run_script(line.decode('utf-8'))
-                # End FLSUN Changes
+                self.gcode.run_script(line)
             except self.gcode.error as e:
                 error_message = str(e)
                 try:
