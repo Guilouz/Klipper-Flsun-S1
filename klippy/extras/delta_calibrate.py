@@ -82,12 +82,26 @@ class DeltaCalibrate:
                                             self.handle_connect)
         # Calculate default probing points
         radius = config.getfloat('radius', above=0.)
-        points = [(0., 0.)]
-        scatter = [.95, .90, .85, .70, .75, .80]
-        for i in range(6):
-            r = math.radians(90. + 60. * i)
-            dist = radius * scatter[i]
-            points.append((math.cos(r) * dist, math.sin(r) * dist))
+        # Start FLSUN Changes
+        enhanced_method = config.getboolean('enhanced_method', False)
+        if enhanced_method:
+            points = [(0., 0.), (0., 20.), (0., 0.), (0., -20.), (20., 0.), (-20., 0.)]
+            scatter = [.97] * 16
+            for i in range(16):
+                degrees = 22.5 * i
+                angle = math.radians(degrees)
+                dist = radius * scatter[i]  
+                x = dist * math.cos(angle)
+                y = dist * math.sin(angle)
+                points.append((x, y))
+        else:
+            points = [(0., 0.)]
+            scatter = [.95, .90, .85, .70, .75, .80]
+            for i in range(6):
+                r = math.radians(90. + 60. * i)
+                dist = radius * scatter[i]
+                points.append((math.cos(r) * dist, math.sin(r) * dist))
+        # End FLSUN Changes
         self.probe_helper = probe.ProbePointsHelper(
             config, self.probe_finalize, default_points=points)
         self.probe_helper.minimum_points(3)
