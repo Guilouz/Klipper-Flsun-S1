@@ -106,6 +106,7 @@ class PrinterStepperEnable:
         del enable_xyz_lines['extruder']
         for el in enable_xyz_lines.values():
             el.motor_enable(print_time)
+        toolhead.get_kinematics().clear_homing_state((0, 1, 2))
         self.printer.send_event("stepper_enable:motor_on", print_time)
         toolhead.dwell(DISABLE_STALL_TIME)
     # End FLSUN Changes
