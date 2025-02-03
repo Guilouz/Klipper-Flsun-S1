@@ -4,10 +4,8 @@
 # | |__| (_| | | | | | |  __/ | | (_| |
 #  \____\__,_|_| |_| |_|\___|_|  \__,_|
 #
-# Camera Settings for MJPG-Streamer - FlSUN S1
-# For Open Source Edition
-# Version: 1.0
+# Camera Settings for MJPG-Streamer
+# For FLSUN S1 Open Source Edition
 
 
 camera_usb_options="-r 1280x720 -f 30 -d /dev/video9" 
-
