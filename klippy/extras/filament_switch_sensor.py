@@ -4,7 +4,7 @@
 #
 # This file may be distributed under the terms of the GNU GPLv3 license.
 import logging
-import mcu # FLSUN Changes
+import mcu, os # FLSUN Changes
 from . import homing # FLSUN Changes
 
 class RunoutHelper:
@@ -20,6 +20,9 @@ class RunoutHelper:
             self.gcode.register_command(
                 'STEPPER_STOP',self.cmd_STEPPER_STOP,
                 desc=self.cmd_STEPPER_STOP_help)
+            self.gcode.register_command(
+                'FAN_STOP',self.cmd_FAN_STOP,
+                desc=self.cmd_FAN_STOP_help)
         # End FLSUN Changes
         # Read config
         self.runout_pause = config.getboolean('pause_on_runout', True)
@@ -129,10 +132,11 @@ class RunoutHelper:
     # Start FLSUN Changes
     cmd_STEPPER_STOP_help = "Stop the stepper by send commands to the mcu"
     def cmd_STEPPER_STOP(self,gcmd):
+        os.system("sync")
         toolhead = self.printer.lookup_object('toolhead')
         toolhead.lookahead.reset()
         fan_state = self.printer.lookup_object('fan')
-        fan_state.fan.set_speed_from_command(0.)
+        fan_state.fan.set_speed(0.)
         heater_state = self.printer.lookup_object('heaters')
         heater_state.turn_off_all_heaters()     
         print_time = toolhead.get_last_move_time()
@@ -140,7 +144,7 @@ class RunoutHelper:
         self._dispatch.stop()
         homing_state = homing.Homing(self.printer)
         kin = toolhead.get_kinematics()
-        kin.rails[0].homing_speed = 300
+        kin.rails[0].homing_speed = 350
         try:
             kin.home(homing_state)
         except self.printer.command_error:
@@ -149,6 +153,11 @@ class RunoutHelper:
                     "Homing failed due to printer shutdown")
             self.printer.lookup_object('stepper_enable').motor_off()
             raise
+        
+    cmd_FAN_STOP_help = "Immediately stops fan"
+    def cmd_FAN_STOP(self,gcmd):
+        fan_state = self.printer.lookup_object('fan')
+        fan_state.fan.set_speed(0.)
     # End FLSUN Changes
 
 class SwitchSensor:

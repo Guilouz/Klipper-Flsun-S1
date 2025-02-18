@@ -184,12 +184,12 @@ class VirtualSD:
         filename = gcmd.get("FILENAME")
         fileposition = gcmd.get("FILEPOSITION")
         fname = os.path.basename(filename)
-        print_duration = gcmd.get("PRINT_DURATION")
-        self.print_stats.modify_print_time(float(print_duration))
-        self._load_file(gcmd, fname, fileposition, check_subdirs=True)      
+        gcmd_print_duration = gcmd.get("PRINT_DURATION", 0)
+        gcmd_filament_used = gcmd.get("FILAMENT_USED", 0.)
+        self._load_file(gcmd, fname, fileposition, check_subdirs=True, print_duration=gcmd_print_duration, filament_used=gcmd_filament_used)      
         self.do_resume()
     #def _load_file(self, gcmd, filename, check_subdirs=False):
-    def _load_file(self, gcmd, filename, fileposition=0, check_subdirs=False):
+    def _load_file(self, gcmd, filename, fileposition=0, check_subdirs=False, print_duration=0, filament_used=0.):
     # End FLSUN Changes
         files = self.get_file_list(check_subdirs)
         flist = [f[0] for f in files]
@@ -220,6 +220,8 @@ class VirtualSD:
             self.gcode.run_script_from_command("G28")
             self.gcode.run_script_from_command("_START_PRINT")
         else:
+            self.print_stats.set_filament_used(float(filament_used))
+            self.print_stats.modify_print_time(float(print_duration))
             self.gcode.run_script_from_command("_START_PRINT_RESUME")
         # End FLSUN Changes
     def cmd_M24(self, gcmd):
