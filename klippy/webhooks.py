@@ -226,12 +226,6 @@ class ClientConnection:
     def process_received(self, eventtime):
         try:
             data = self.sock.recv(4096)
-            # Start FLSUN Changes
-            if "pause_resume/cancel" in str(data):
-                heater.heat_break = 1
-            if "SDCARD_PRINT_FILE FILENAME=" in str(data):
-                heater.heat_break = 0
-            # End FLSUN Changes
         except socket.error as e:
             # If bad file descriptor allow connection to be
             # closed by the data check
