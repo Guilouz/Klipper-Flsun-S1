@@ -5,7 +5,6 @@
 # This file may be distributed under the terms of the GNU GPLv3 license
 import logging, socket, os, sys, errno, json, collections
 import gcode
-import extras.heaters as heater # FLSUN Changes
 
 REQUEST_LOG_SIZE = 20
 
