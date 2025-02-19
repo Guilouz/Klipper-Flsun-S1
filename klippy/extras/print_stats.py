@@ -92,7 +92,7 @@ class PrintStats:
         self.init_duration = 0.
         self.info_total_layer = None
         self.info_current_layer = None
-        self.duration = 0
+        self.duration = 0 # FLSUN Changes
     def get_status(self, eventtime):
         time_paused = self.prev_pause_duration
         if self.print_start_time is not None:
