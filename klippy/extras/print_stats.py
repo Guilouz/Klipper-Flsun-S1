@@ -92,6 +92,7 @@ class PrintStats:
         self.init_duration = 0.
         self.info_total_layer = None
         self.info_current_layer = None
+        self.duration = 0 # FLSUN Changes
     def get_status(self, eventtime):
         time_paused = self.prev_pause_duration
         if self.print_start_time is not None:
@@ -103,10 +104,7 @@ class PrintStats:
                 self._update_filament_usage(eventtime)
             # Start FLSUN Changes
             #self.total_duration = eventtime - self.print_start_time
-            if(self.duration == 0):
-                self.total_duration = eventtime - self.print_start_time
-            else:
-                self.total_duration = eventtime - self.print_start_time + self.duration
+            self.total_duration = eventtime - self.print_start_time + self.duration
             # End FLSUN Changes
             if self.filament_used < 0.0000001:
                 # Track duration prior to extrusion
@@ -125,6 +123,9 @@ class PrintStats:
     # Start FLSUN Changes
     def modify_print_time(self, time):
         self.duration = time
+
+    def set_filament_used(self, filament_used):
+        self.filament_used = filament_used
     # End FLSUN Changes
 
 def load_config(config):
