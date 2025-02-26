@@ -21,5 +21,6 @@ the generous support from our
 
 This version of Klipper is compatible with FLSUN S1.
 
-Repository for FLSUN S1 & T1 is available here: [Flsun-S1-T1](https://github.com/Guilouz/Flsun-S1-T1)
+Wiki is available here:
 
+<a href="https://guilouz.github.io/FLSUN-S1-Open-Source-Edition/home.html" target="_blank"><img width="350" src="https://github.com/Guilouz/FLSUN-S1-Open-Source-Edition/blob/main/docs/assets/images/open-source-edition.png?raw=true"></a>
