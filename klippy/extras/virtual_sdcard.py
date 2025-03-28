@@ -129,6 +129,7 @@ class VirtualSD:
             self.current_file.close()
             self.current_file = None
             self.print_stats.note_cancel()
+            self.gcode.run_script_from_command("_END_PRINT") # FLSUN Changes
         self.file_position = self.file_size = 0
     # G-Code commands
     def cmd_error(self, gcmd):
