@@ -105,10 +105,10 @@ class PrinterTemplateEvaluator:
             # Build a unique id to make it possible to cache duplicate rendering
             uid = (template,) + tuple(sorted(lparams.items()))
             try:
-                 {}.get(uid)
-             except TypeError as e:
-                 # lparams is not static, so disable caching
-                 uid = None
+                {}.get(uid)
+            except TypeError as e:
+                # lparams is not static, so disable caching
+                uid = None
             self.active_templates[callback] = (
                 uid, template, lparams, flush_callback)
             return
