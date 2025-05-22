@@ -168,7 +168,7 @@ class SwitchSensor:
         buttons = printer.load_object(config, 'buttons')
         switch_pin = config.get('switch_pin')
         buttons.register_debounce_button(switch_pin, self._button_handler
-                                          , config)
+                                         , config)
         self.runout_helper = RunoutHelper(config)
         self.get_status = self.runout_helper.get_status
     def _button_handler(self, eventtime, state):
