@@ -165,14 +165,14 @@ shaper_xy_calc_position(struct stepper_kinematics *sk, struct move *m
 }
 
 // A callback that forwards post_cb call to the original kinematics
- static void
- shaper_commanded_pos_post_fixup(struct stepper_kinematics *sk)
- {
-     struct input_shaper *is = container_of(sk, struct input_shaper, sk);
-     is->orig_sk->commanded_pos = sk->commanded_pos;
-     is->orig_sk->post_cb(is->orig_sk);
-     sk->commanded_pos = is->orig_sk->commanded_pos;
- }
+static void
+shaper_commanded_pos_post_fixup(struct stepper_kinematics *sk)
+{
+    struct input_shaper *is = container_of(sk, struct input_shaper, sk);
+    is->orig_sk->commanded_pos = sk->commanded_pos;
+    is->orig_sk->post_cb(is->orig_sk);
+    sk->commanded_pos = is->orig_sk->commanded_pos;
+}
 
 static void
 shaper_note_generation_time(struct input_shaper *is)
@@ -184,7 +184,7 @@ shaper_note_generation_time(struct input_shaper *is)
     }
     if ((is->sk.active_flags & AF_Y) && is->sy.num_pulses) {
         pre_active = is->sy.pulses[is->sy.num_pulses-1].t > pre_active
-            ? is->sy.pulses[is->sy.num_pulses-1].t : pre_active;Add commentMore actions
+            ? is->sy.pulses[is->sy.num_pulses-1].t : pre_active;
         post_active = -is->sy.pulses[0].t > post_active
             ? -is->sy.pulses[0].t : post_active;
     }
@@ -225,8 +225,8 @@ input_shaper_set_sk(struct stepper_kinematics *sk
     is->sk.last_flush_time = orig_sk->last_flush_time;
     is->sk.last_move_time = orig_sk->last_move_time;
     if (orig_sk->post_cb) {
-         is->sk.post_cb = shaper_commanded_pos_post_fixup;
-     }
+        is->sk.post_cb = shaper_commanded_pos_post_fixup;
+    }
     return 0;
 }
 
