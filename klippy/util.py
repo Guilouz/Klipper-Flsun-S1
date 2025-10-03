@@ -141,6 +141,12 @@ def get_device_info():
         return "?"
     return data.rstrip(' \0')
 
+def get_linux_version():
+    data = _try_read_file('/proc/version')
+    if data is None:
+        return "?"
+    return data.strip()
+
 def get_version_from_file(klippy_src):
     try:
         with open(os.path.join(klippy_src, '.version')) as h:
