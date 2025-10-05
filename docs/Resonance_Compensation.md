@@ -439,9 +439,12 @@ gcode:
   SET_INPUT_SHAPER SHAPER_TYPE_X=<primary_carriage_shaper> SHAPER_FREQ_X=<primary_carriage_freq> SHAPER_TYPE_Y=<y_shaper> SHAPER_FREQ_Y=<y_freq>
 ```
 Note that `SHAPER_TYPE_Y` and `SHAPER_FREQ_Y` should be the same in both
-commands. It is also possible to put a similar snippet into the start g-code
-in the slicer, however then the shaper will not be enabled until any print
-is started.
+commands. If you need to configure an input shaper for Z axis, include
+its parameters in both `SET_INPUT_SHAPER` commands.
+
+Besides `delayed_gcode`, it is also possible to put a similar snippet into
+the start g-code in the slicer, however then the shaper will not be enabled
+until any print is started.
 
 Note that the input shaper only needs to be configured once. Subsequent changes
 of the carriages or their modes via `SET_DUAL_CARRIAGE` command will preserve
@@ -453,15 +456,40 @@ No, `input_shaper` feature has pretty much no impact on the print times by
 itself. However, the value of `max_accel` certainly does (tuning of this
 parameter described in [this section](#selecting-max_accel)).
 
+### Should I enable and tune input shaper for Z axis?
+
+Most of the users are not likely to see improvements in the quality of
+the prints directly, much unlike X and Y shapers. However, users of
+delta printers, printers with flying gantry, or printers with heavy
+moving beds may be able to increase the `max_z_accel` and `max_z_velocity`
+kinematics limits and thus get faster Z movements. This can be especially
+useful e.g. for toolchangers, but also when Z-hops are enabled in slicer.
+And in general, after enabling Z input shaper many users will hear that
+Z axis operates more smoothly, which may increase the comfort of printer
+operation, and may somewhat extend lifespan of Z axis parts.
+
 ## Technical details
 
 ### Input shapers
 
-Input shapers used in Klipper are rather standard, and one can find more
-in-depth overview in the articles describing the corresponding shapers.
 This section contains a brief overview of some technical aspects of the
-supported input shapers. The table below shows some (usually approximate)
-parameters of each shaper.
+supported input shapers. Input shapers used in Klipper are rather standard,
+with the exception of MZV, and one can find more in-depth overview in
+the articles describing the corresponding shapers.
+
+MZV stands for a Modified-ZV input shaper. The classic definition of ZV shaper
+assumes the duration Ts equal to 1/2 of the damped period of oscillations Td and
+has two pulses. However, ZV input shaper has a generalized form for an arbitrary
+duration in the range (0, Td] with three pulses (Specified-Duration ZV, see also
+SNA-ZV), with a negative middle pulse if Ts < Td and a positive one if Ts > Td.
+The MZV shaper was designed as an intermediate shaper between ZV and ZVD,
+offering better vibrations suppression than ZV when the determined (measured)
+shaper parameters deviate from the ones actually required by the printer,
+and smaller smoothing than ZVD. Effectively, it is a SD-ZV shaper with the
+specific duration Ts = 3/4 Td, exactly between ZV (Ts = 1/2 Td) and
+ZVD (Ts = Td), and it happens to work well for many real-life 3D printers.
+
+The table below shows some (usually approximate) parameters of each shaper.
 
 | Input <br> shaper | Shaper <br> duration | Vibration reduction 20x <br> (5% vibration tolerance) | Vibration reduction 10x <br> (10% vibration tolerance) |
 |:--:|:--:|:--:|:--:|
