@@ -308,7 +308,7 @@ class BedMesh:
                 result["calibration"] = self.bmc.dump_calibration(gcmd)
         else:
             result["calibration"] = self.bmc.dump_calibration()
-        offsets = [0, 0, 0] if prb is None else prb.get_offsets()
+        offsets = [0, 0, 0] if prb is None else prb.get_offsets(gcmd)
         result["probe_offsets"] = offsets
         result["axis_minimum"] = th_sts["axis_minimum"]
         result["axis_maximum"] = th_sts["axis_maximum"]
@@ -1209,7 +1209,7 @@ class RapidScanHelper:
         gcmd_params["SAMPLE_TIME"] = half_window * 2
         self._raise_tool(gcmd, scan_height)
         probe_session = pprobe.start_probe_session(gcmd)
-        offsets = pprobe.get_offsets()
+        offsets = pprobe.get_offsets(gcmd)
         initial_move = True
         for pos, is_probe_pt in self.probe_manager.iter_rapid_path():
             pos = self._apply_offsets(pos[:2], offsets)
@@ -1220,10 +1220,6 @@ class RapidScanHelper:
             if is_probe_pt:
                 probe_session.run_probe(gcmd)
         results = probe_session.pull_probed_results()
-        import manual_probe # XXX
-        results = [manual_probe.ProbeResult(
-            r[0]+offsets[0], r[1]+offsets[1], r[2]-offsets[2], r[0], r[1], r[2])
-                   for r in results]
         toolhead.get_last_move_time()
         self.finalize_callback(results)
         probe_session.end_probe_session()
