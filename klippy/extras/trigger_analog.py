@@ -38,6 +38,7 @@ class DigitalFilter:
             return
         try:
             import scipy.signal as signal
+            import numpy
         except:
             raise cfg_error("DigitalFilter require the SciPy module")
         if highpass:
@@ -69,6 +70,27 @@ class DigitalFilter:
     def get_initial_state(self):
         return self.initial_state
 
+    def filtfilt(self, data):
+        import scipy.signal as signal
+        import numpy
+        data = numpy.array(data)
+        return signal.sosfiltfilt(self.filter_sections, data)
+
+# Produce sample to sample difference (derivative) of a DigitalFilter
+class DerivativeFilter:
+    def __init__(self, main_filter):
+        self._main_filter = main_filter
+
+    def get_main_filter(self):
+        return self._main_filter
+
+    def get_filter_sections(self):
+        s = list(self._main_filter.get_filter_sections())
+        return s + [(1., -1., 0., 1., 0., 0.)]
+
+    def get_initial_state(self):
+        s = list(self._main_filter.get_initial_state())
+        return s + [(-1., 0.)]
 
 # Control an `sos_filter` object on the MCU
 class MCU_SosFilter:
@@ -255,7 +277,7 @@ class MCU_trigger_analog:
         # Lookup commands
         self._query_state_cmd = self._mcu.lookup_query_command(
             "trigger_analog_query_state oid=%c",
-            "trigger_analog_state oid=%c homing=%c trigger_clock=%u",
+            "trigger_analog_state oid=%c homing=%c homing_clock=%u",
             oid=self._oid, cq=cmd_queue)
         self._set_raw_range_cmd = self._mcu.lookup_command(
             "trigger_analog_set_raw_range oid=%c raw_min=%i raw_max=%i",
@@ -312,7 +334,7 @@ class MCU_trigger_analog:
     def _clear_home(self):
         self._home_cmd.send([self._oid, 0, 0, 0, 0, 0, 0, 0])
         params = self._query_state_cmd.send([self._oid])
-        trigger_ticks = self._mcu.clock32_to_clock64(params['trigger_clock'])
+        trigger_ticks = self._mcu.clock32_to_clock64(params['homing_clock'])
         return self._mcu.clock_to_print_time(trigger_ticks)
 
     def get_steppers(self):
